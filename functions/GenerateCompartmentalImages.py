@@ -7,6 +7,7 @@ from scipy import integrate
 from scipy.integrate import quad
 import math
 from scipy.signal import convolve
+import ctypes
 import warnings
 warnings.filterwarnings("ignore", category=integrate.IntegrationWarning)
 from tqdm import tqdm
@@ -19,7 +20,7 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
     output_frame_durations = config["output_frame_durations"]
     output_frame_starts = config["output_frame_starts"]
 
-    if not input_frame_starts:
+    if not input_frame_starts and not input_function_time: #successive frames
         input_frame_starts = [0] + np.cumsum(input_frame_durations[:-1]).tolist()
         input_frame_starts = [i for i in input_frame_starts]
 
@@ -29,10 +30,13 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
         tmid_in = [i/60 for i in input_function_time]
 
     if not output_frame_durations:
+        if not input_frame_durations:
+            raise RuntimeError("Either input_frame_durations or output_frame_durations must be provided")
+
         output_frame_durations = input_frame_durations
         output_frame_starts = input_frame_starts
 
-    elif not output_frame_starts:
+    elif not output_frame_starts: #successive frames
         output_frame_starts = [0] + np.cumsum(output_frame_durations[:-1]).tolist()
         output_frame_starts = [i for i in output_frame_starts]
 
@@ -52,7 +56,11 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
     Cp = [f_linear(t)[()] for t in tmid_out]
     Cp_integrated = [quad(f_linear, 0, t)[0] for t in tmid_out]
 
-    end_time = (input_frame_starts[-1]+input_frame_durations[-1])/60
+    if not input_frame_durations:
+        end_time = input_function_time[-1]/60
+    else:
+        end_time = (input_frame_starts[-1]+input_frame_durations[-1])/60
+
     delt = 0.01
     t = np.arange(0, end_time + delt * 2, delt)
     cpt = f_linear(t)
