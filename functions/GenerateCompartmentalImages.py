@@ -54,7 +54,9 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
     f_linear = interp1d(tmid_in, input_function, 'linear', fill_value='extrapolate')
 
     Cp = [f_linear(t)[()] for t in tmid_out]
+    Cp = [i if i > 0 else 0 for i in Cp]
     Cp_integrated = [quad(f_linear, 0, t)[0] for t in tmid_out]
+    Cp_integrated = [i if i > 0 else 0 for i in Cp_integrated]
 
     if not input_frame_durations:
         end_time = input_function_time[-1]/60
@@ -80,6 +82,7 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
 
     C_interp = interp1d(t, C)
     sampled_C = C_interp(tmid_out)
+    sampled_C[sampled_C < 0] = 0
 
     regions = (ROI_image.astype(int) - 1)
     image_4D[regions>=0,:] = sampled_C[regions[regions>=0], :]
