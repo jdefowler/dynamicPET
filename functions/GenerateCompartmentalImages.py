@@ -58,10 +58,10 @@ def generate_graphics(output_path, config, kinetic_parameters, ROIs_filename, xd
     Cp_integrated = [quad(f_linear, 0, t)[0] for t in tmid_out]
     Cp_integrated = [i if i > 0 else 0 for i in Cp_integrated]
 
-    if not input_frame_durations:
-        end_time = input_function_time[-1]/60
-    else:
+    if not input_function_time:
         end_time = (input_frame_starts[-1]+input_frame_durations[-1])/60
+    else:
+        end_time = input_function_time[-1]/60
 
     delt = 0.01
     t = np.arange(0, end_time + delt * 2, delt)
